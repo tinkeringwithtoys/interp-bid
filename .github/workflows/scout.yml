@@ -1,0 +1,51 @@
+name: Interpreting opportunity scout
+on:
+  workflow_dispatch:
+    inputs:
+      provider:
+        description: Research provider
+        required: true
+        default: agnes-exa
+        type: choice
+        options: [agnes-exa, openai-web]
+      dry_run:
+        description: Do not write reports or state
+        required: true
+        default: true
+        type: boolean
+  schedule:
+    # Provisional: 08:00, 13:00, 18:00 Africa/Tunis (UTC+1).
+    - cron: '0 7,12,17 * * *'
+permissions:
+  contents: write
+concurrency:
+  group: interp-bid-scout
+  cancel-in-progress: false
+jobs:
+  scout:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      RESEARCH_PROVIDER: ${{ inputs.provider || vars.RESEARCH_PROVIDER || 'agnes-exa' }}
+      DRY_RUN: ${{ inputs.dry_run || 'false' }}
+      AGNES_API_KEY: ${{ secrets.AGNES_API_KEY }}
+      EXA_API_KEY: ${{ secrets.EXA_API_KEY }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      AGNES_MODEL: ${{ vars.AGNES_MODEL || 'agnes-2.5-flash' }}
+      OPENAI_MODEL: ${{ vars.OPENAI_MODEL || 'gpt-5.6' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci --ignore-scripts
+      - run: npm run check
+      - run: npm test
+      - run: npm run
+      - name: Commit new reports and registry
+        if: env.DRY_RUN != 'true'
+        run: |
+          git config user.name 'interp-bid bot'
+          git config user.email 'interp-bid-bot@users.noreply.github.com'
+          git add reports state
+          git diff --cached --quiet || git commit -m "chore: update interpreting scout reports"
+          git push
