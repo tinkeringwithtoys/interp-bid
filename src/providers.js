@@ -15,7 +15,7 @@ export async function exaSearch(query, apiKey, { startPublishedDate, excludeDoma
     numResults: 8,
     ...(startPublishedDate ? { startPublishedDate } : {}),
     ...(excludeDomains.length ? { excludeDomains } : {}),
-    contents: { text: { maxCharacters: 12000 }, highlights: true }
+    contents: { text: { maxCharacters: 6000 }, highlights: true }
   }, fetchImpl);
   return (data.results || []).map((item) => ({
     url: item.url,
@@ -30,11 +30,21 @@ export async function agnesDigest({ model, apiKey, system, prompt, fetchImpl = f
   const data = await request('https://apihub.agnes-ai.com/v1/chat/completions', apiKey, {
     model,
     temperature: 0.1,
-    max_tokens: 8000,
+    max_tokens: 16000,
     messages: [{ role: 'system', content: system }, { role: 'user', content: prompt }]
   }, fetchImpl);
-  const text = data.choices?.[0]?.message?.content;
-  if (!text) throw new Error('Agnes returned no assistant content.');
+  const choice = data.choices?.[0];
+  const text = choice?.message?.content;
+  if (!text) {
+    const diagnostic = {
+      finishReason: choice?.finish_reason ?? null,
+      usage: data.usage ?? null,
+      error: data.error ?? null,
+      hasChoices: Array.isArray(data.choices),
+      rawTopLevelKeys: Object.keys(data || {})
+    };
+    throw new Error(`Agnes returned no assistant content. Diagnostic: ${JSON.stringify(diagnostic)}`);
+  }
   return { text, sourceUrls: [] };
 }
 
