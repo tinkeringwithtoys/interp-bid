@@ -6,9 +6,10 @@
   "description": "Daily live-interpreting opportunity scout with Agnes+Exa or OpenAI web search.",
   "scripts": {
     "test": "node --test",
-    "check": "node --check src/lib.js && node --check src/providers.js && node --check src/runner.js",
+    "check": "node --check src/lib.js && node --check src/providers.js && node --check src/email.js && node --check src/runner.js",
     "run": "node src/runner.js",
-    "validate:live": "node scripts/validate-live.js"
+    "validate:live": "node scripts/validate-live.js",
+    "validate:smtp": "node scripts/validate-smtp.js"
   },
   "engines": { "node": ">=20" }
 }
