@@ -11,29 +11,35 @@
   },
   "resultLimits": {
     "resultsPerQuery": 8,
-    "maxCandidatesPerLanguage": 14,
+    "maxCandidatesPerLanguage": 18,
     "monthlyRecurringSuppressDays": 30,
     "recentMemoryDays": 3,
     "recentPublishedDays": 7
   },
   "queryTemplates": {
     "en": [
-      "Arabic interpreter interpreting services (RFP OR tender OR solicitation OR roster OR vendor) -translation",
-      "Arabic (VRI OR OPI OR video remote interpreting OR telephone interpreting) (vendor OR RFP OR network OR panel)",
-      "Arabic interpreter (court OR medical OR healthcare OR conference) (panel OR registry OR vendor OR subcontractor)",
-      "(\"join our interpreter network\" OR \"become a vendor\" OR \"freelance interpreter\") Arabic (LSP OR agency)"
+      "(\"interpreter\" OR \"interpreting\" OR \"interpretation services\") Arabic (RFP OR tender OR solicitation OR \"call for\" OR framework OR roster OR panel OR \"vendor application\") -translation",
+      "(\"video remote interpreting\" OR VRI OR \"over-the-phone interpreting\" OR OPI) Arabic (RFP OR tender OR vendor OR network OR panel)",
+      "\"court interpreter\" OR \"medical interpreter\" OR \"healthcare interpreter\" Arabic (panel OR registry OR RFP OR \"become a vendor\")",
+      "(\"join our interpreter network\" OR \"become a vendor\" OR \"become a subcontractor\" OR \"freelance interpreter\") Arabic (LSP OR agency)",
+      "site:sam.gov (interpreter OR interpreting) Arabic",
+      "site:linkedin.com (interpreter OR interpreting) Arabic (vendor OR subcontractor OR freelance OR panel OR \"open position\")"
     ],
     "fr": [
-      "(appel d'offres OR marché OR accord-cadre) (interprétariat OR interprétation simultanée OR interprétation consécutive) arabe -traduction",
+      "(appel d'offres OR marché OR accord-cadre) (interprétariat OR interprétation simultanée OR interprétation consécutive) (arabe OR \"arabe-français\") -traduction",
       "(interprétariat téléphonique OR interprétation à distance OR interprétation vidéo OR VRI) arabe (marché OR appel d'offres)",
-      "interprète arabe (prestataire OR sous-traitant OR réseau OR panel OR fournisseur)",
-      "(interprète arabe OR interprétation arabe) (agence OR sous-traitant OR \"devenir fournisseur\" OR réseau)"
+      "(médiateur interculturel OR interprète de liaison) arabe (appel d'offres OR marché)",
+      "interprète arabe (prestataire OR sous-traitant OR réseau OR panel OR fournisseur OR \"devenir fournisseur\")",
+      "site:ted.europa.eu interprétation arabe",
+      "(site:boamp.fr OR site:marches-publics.gouv.fr) (interprétariat OR interprétation) arabe"
     ],
     "ar": [
-      "(مترجم فوري OR ترجمة شفوية OR تفسير فوري) (مناقصة OR عطاء OR طلب عروض OR سجل) عربي",
-      "(ترجمة فورية عن بعد OR ترجمة هاتفية OR وسيط ثقافي) (مناقصة OR مورد OR سجل) عربي",
+      "(مترجم فوري OR ترجمة شفوية OR تفسير فوري) (مناقصة OR عطاء OR طلب عروض OR إطار OR سجل)",
+      "وسيط ثقافي (مناقصة OR عطاء)",
       "مترجم فوري عربي (مؤتمر OR محكمة OR مستشفى) (طلب عروض OR مورد OR تسجيل)",
-      "مترجم فوري عربي (مورد OR متعاقد OR تسجيل OR شبكة مترجمين) (السعودية OR الإمارات OR قطر)"
+      "مترجم فوري عربي (مورد OR متعاقد OR تسجيل OR شبكة مترجمين) (السعودية OR الإمارات OR قطر)",
+      "site:etimad.sa مترجم فوري",
+      "(انضم إلى شبكة المترجمين الفوريين OR مترجم فوري مستقل) (وكالة OR مزود خدمات لغوية)"
     ]
   }
 }
