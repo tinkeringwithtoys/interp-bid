@@ -1,0 +1,14 @@
+{
+  "companyName": "[Company — set this before production]",
+  "timezone": "Africa/Tunis",
+  "scheduleLocal": ["08:00", "13:00", "18:00"],
+  "languages": ["en", "fr", "ar"],
+  "defaultProvider": "agnes-exa",
+  "models": { "agnes": "agnes-2.5-flash", "openai": "gpt-5.6" },
+  "resultLimits": { "resultsPerQuery": 8, "maxCandidatesPerLanguage": 24, "monthlyRecurringSuppressDays": 30, "recentMemoryDays": 3 },
+  "queryTemplates": {
+    "en": ["Arabic interpreter interpreting services (RFP OR tender OR solicitation OR roster OR panel OR vendor) -translation", "Arabic (VRI OR OPI OR video remote interpreting OR telephone interpreting) (vendor OR RFP OR network OR panel)", "Arabic interpreter (court OR medical OR healthcare OR conference) (panel OR registry OR vendor OR subcontractor)"],
+    "fr": ["(appel d'offres OR marché OR accord-cadre) (interprétariat OR interprétation simultanée OR interprétation consécutive) arabe -traduction", "(interprétariat téléphonique OR interprétation à distance OR interprétation vidéo OR VRI) arabe (marché OR appel d'offres)", "interprète arabe (prestataire OR sous-traitant OR réseau OR panel OR fournisseur)"],
+    "ar": ["(مترجم فوري OR ترجمة شفوية OR تفسير فوري) (مناقصة OR عطاء OR طلب عروض OR سجل) عربي", "(ترجمة فورية عن بعد OR ترجمة هاتفية OR وسيط ثقافي) (مناقصة OR مورد OR سجل) عربي", "مترجم فوري عربي (مؤتمر OR محكمة OR مستشفى) (طلب عروض OR مورد OR تسجيل)"]
+  }
+}

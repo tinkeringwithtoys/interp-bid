@@ -1,0 +1,14 @@
+{
+  "name": "interp-bid",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Daily live-interpreting opportunity scout with Agnes+Exa or OpenAI web search.",
+  "scripts": {
+    "test": "node --test",
+    "check": "node --check src/lib.js && node --check src/providers.js && node --check src/runner.js",
+    "run": "node src/runner.js",
+    "validate:live": "node scripts/validate-live.js"
+  },
+  "engines": { "node": ">=20" }
+}
