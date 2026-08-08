@@ -17,7 +17,8 @@ async function runLanguage({ language, settings, policy, registry, now, provider
   if (provider === 'agnes-exa') {
     if (!process.env.EXA_API_KEY || !process.env.AGNES_API_KEY) throw new Error('AGNES_API_KEY and EXA_API_KEY are required for agnes-exa.');
     const startPublishedDate = new Date(now.getTime() - settings.resultLimits.recentPublishedDays * 86400000).toISOString();
-    const batches = await Promise.all(queries.map((query) => exaSearch(query, process.env.EXA_API_KEY, { startPublishedDate }))); const byUrl = new Map();
+    const batches = await Promise.all(queries.map((query) => exaSearch(query, process.env.EXA_API_KEY, { startPublishedDate, excludeDomains: settings.excludedDomains })));
+    const byUrl = new Map();
     for (const item of batches.flat()) try { if (!byUrl.has(canonicalUrl(item.url))) byUrl.set(canonicalUrl(item.url), item); } catch { /* discard invalid URL */ }
     candidates = [...byUrl.values()].slice(0, settings.resultLimits.maxCandidatesPerLanguage);
     response = await agnesDigest({ model: process.env.AGNES_MODEL || settings.models.agnes, apiKey: process.env.AGNES_API_KEY, system: 'You are a strict sourcing verifier. Return only valid JSON; never invent evidence.', prompt: promptFor({ policy, language, queries, candidates, memory, provider }) });
