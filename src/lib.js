@@ -43,8 +43,23 @@ export function registerLead(registry, lead, disposition, now = new Date()) {
   return registry;
 }
 export function extractJson(text) {
-  const fenced = text.match(/```(?:json)?\s*([\s\S]*?)```/i);
-  return JSON.parse((fenced?.[1] || text).trim());
+  const raw = String(text);
+  const fenced = raw.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  if (fenced?.[1]) return JSON.parse(fenced[1].trim());
+  // Handle a fence that opens but never closes (e.g. output was truncated mid-generation).
+  const unclosed = raw.trim().replace(/^```(?:json)?\s*/i, '');
+  const candidate = unclosed.trim();
+  try {
+    return JSON.parse(candidate);
+  } catch (err) {
+    // Last resort: extract the widest {...} span in case of leading/trailing prose or a dangling fence marker.
+    const start = candidate.indexOf('{');
+    const end = candidate.lastIndexOf('}');
+    if (start !== -1 && end !== -1 && end > start) {
+      return JSON.parse(candidate.slice(start, end + 1));
+    }
+    throw err;
+  }
 }
 export function evidenceIsInCandidate(lead, candidates) {
   const candidate = candidates.find((item) => canonicalUrl(item.url) === canonicalUrl(lead.sourceUrl));
