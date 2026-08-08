@@ -1,0 +1,34 @@
+name: SMTP smoke test
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_send:
+        description: 'Send a test email to REPORT_RECIPIENTS'
+        required: true
+        default: false
+        type: boolean
+
+jobs:
+  smtp-test:
+    if: inputs.confirm_send == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      SMTP_HOST: ${{ secrets.SMTP_HOST }}
+      SMTP_PORT: ${{ secrets.SMTP_PORT }}
+      SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+      SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+      SMTP_FROM: ${{ secrets.SMTP_FROM }}
+      REPORT_RECIPIENTS: ${{ secrets.REPORT_RECIPIENTS }}
+      SMTP_SECURE: ${{ secrets.SMTP_SECURE }}
+      SMTP_REQUIRE_TLS: ${{ secrets.SMTP_REQUIRE_TLS }}
+      CONFIRM_SMTP_SMOKE_TEST: 'true'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci --ignore-scripts
+      - run: npm run check
+      - run: npm test
+      - run: npm run validate:smtp
