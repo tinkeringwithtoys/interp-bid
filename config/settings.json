@@ -7,7 +7,7 @@
   "excludedDomains": ["bidsfactory.com", "tendios.com", "tenderimpulse.com", "starbridge.ai", "cleat.ai", "californiabids.com", "indeed.com", "remotejobsopportunities.com", "jobgrow.pragatishilclasses.org", "communityinformationdesk.co.za", "haken.rikunabi.com", "infinityfree.me", "alwadifa-maroc.com", "marchesonline.com", "macellum.fr"],
   "models": {
     "agnes": "agnes-2.5-flash",
-    "openai": "gpt-5.6"
+    "openai": "gpt-5.4"
   },
   "resultLimits": {
     "resultsPerQuery": 8,
