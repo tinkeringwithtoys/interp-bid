@@ -30,7 +30,8 @@ export async function agnesDigest({ model, apiKey, system, prompt, fetchImpl = f
   const data = await request('https://apihub.agnes-ai.com/v1/chat/completions', apiKey, {
     model,
     temperature: 0.1,
-    max_tokens: 16000,
+    max_tokens: 32000,
+    reasoning_effort: 'low',
     messages: [{ role: 'system', content: system }, { role: 'user', content: prompt }]
   }, fetchImpl);
   const choice = data.choices?.[0];
