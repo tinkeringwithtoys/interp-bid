@@ -67,9 +67,21 @@ export async function openAiWebDigest({ model, apiKey, prompt, fetchImpl = fetch
     model,
     tools: [{ type: 'web_search', search_context_size: 'medium' }],
     include: ['web_search_call.action.sources'],
+    max_output_tokens: 32000,
+    reasoning: { effort: 'low' },
     input: prompt
   }, fetchImpl);
   const result = openAiTextAndSources(data);
-  if (!result.text) throw new Error('OpenAI returned no output text.');
+  if (!result.text) {
+    const diagnostic = {
+      status: data.status ?? null,
+      incompleteReason: data.incomplete_details?.reason ?? null,
+      usage: data.usage ?? null,
+      error: data.error ?? null,
+      outputTypes: Array.isArray(data.output) ? data.output.map((item) => item.type) : null,
+      rawTopLevelKeys: Object.keys(data || {})
+    };
+    throw new Error(`OpenAI returned no output text. Diagnostic: ${JSON.stringify(diagnostic)}`);
+  }
   return result;
 }
