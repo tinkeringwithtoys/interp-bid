@@ -42,5 +42,30 @@ async function runLanguage({ language, settings, policy, registry, now, provider
   for (const lead of digest.shortlist) { if (!lead?.sourceUrl || !lead?.spokenEvidence || !lead?.languageEvidence || !hasSpokenRequirement(lead)) { suppressed.invalid++; continue; } const evidenceOk = provider === 'agnes-exa' ? evidenceIsInCandidate(lead, candidates) : openAiUrlAllowed(lead, response.sourceUrls); if (!evidenceOk) { suppressed.invalid++; continue; } const disposition = dispositionFor(lead, registry, now); if (['new', 'update'].includes(disposition.action)) delivered.push({ ...lead, _status: disposition.action }); else if (disposition.action === 'expired') suppressed.expired++; else if (disposition.action === 'suppressed-recurring') suppressed.recurring++; else suppressed.duplicates++; registerLead(registry, lead, disposition, now); }
   return { digest, delivered, suppressed, diagnostics: { queries, startPublishedDate: provider === 'agnes-exa' ? new Date(now.getTime() - settings.resultLimits.recentPublishedDays * 86400000).toISOString() : null, candidateCount: candidates.length, modelShortlistCount: digest.shortlist.length, manualVerificationCount: digest.manualVerification.length, sourceUrlCount: response.sourceUrls?.length || 0, candidates: candidates.slice(0, 10).map((item) => ({ title: item.title, url: item.url })) } };
 }
-async function main() { const settings = await readJson('config/settings.json'); const policy = (await fs.readFile(path.join(root, 'config/scout-prompt.md'), 'utf8')).replaceAll('[Company]', settings.companyName); const registry = await readJson('state/lead-registry.json'); const provider = process.env.RESEARCH_PROVIDER || settings.defaultProvider, now = new Date(), results = []; for (const language of settings.languages) results.push({ language, ...await runLanguage({ language, settings, policy, registry, now, provider }) }); if (process.env.DRY_RUN === 'true') { console.log(JSON.stringify({ dryRun: true, provider, results: results.map((item) => ({ language: item.language, newLeads: item.delivered.length, suppressed: item.suppressed, diagnostics: item.diagnostics, deliveredLeads: item.delivered, manualVerification: item.digest.manualVerification, searchLog: item.digest.searchLog })) }, null, 2)); return; } const reportDir = path.join(root, 'reports', day(now)); await fs.mkdir(reportDir, { recursive: true }); const reports = []; for (const result of results) { const content = renderReport({ date: day(now), language: result.language, digest: result.digest, delivered: result.delivered, suppressed: result.suppressed }); reports.push({ language: result.language, content }); await fs.writeFile(path.join(reportDir, `${result.language}-${clock(now)}.md`), content); } const newLeadCount = results.reduce((sum, item) => sum + item.delivered.length, 0); if (newLeadCount > 0) { const smtp = smtpConfigFromEnv(); if (!smtp) throw new Error('New leads were found but SMTP is not configured. Add SMTP_HOST, SMTP_PORT, SMTP_USERNAME, SMTP_PASSWORD, SMTP_FROM, and ALERT_EMAIL as Actions secrets.'); await sendSmtpMail({ config: smtp, subject: `interp-bid: ${newLeadCount} new or updated interpreting lead${newLeadCount === 1 ? '' : 's'} — ${day(now)}`, text: reports.map((report) => report.content).join('\n\n' + '='.repeat(72) + '\n\n') }); } await fs.writeFile(path.join(root, 'state/lead-registry.json'), `${JSON.stringify(registry, null, 2)}\n`); console.log(`Completed ${results.length} language runs with ${newLeadCount} new or updated leads.${newLeadCount ? ' Sent one consolidated email.' : ' No email sent.'}`); }
+async function main() {
+  const settings = await readJson('config/settings.json');
+  const policy = (await fs.readFile(path.join(root, 'config/scout-prompt.md'), 'utf8')).replaceAll('[Company]', settings.companyName);
+  const registry = await readJson('state/lead-registry.json');
+  const provider = process.env.RESEARCH_PROVIDER || settings.defaultProvider, now = new Date(), results = [];
+  for (const language of settings.languages) results.push({ language, ...await runLanguage({ language, settings, policy, registry, now, provider }) });
+  const dryRun = process.env.DRY_RUN === 'true';
+  const reports = results.map((result) => ({ language: result.language, content: renderReport({ date: day(now), language: result.language, digest: result.digest, delivered: result.delivered, suppressed: result.suppressed }) }));
+  const newLeadCount = results.reduce((sum, item) => sum + item.delivered.length, 0);
+  let emailSent = false;
+  if (newLeadCount > 0) {
+    const smtp = smtpConfigFromEnv();
+    if (!smtp) throw new Error('New leads were found but SMTP is not configured. Add SMTP_HOST, SMTP_PORT, SMTP_USERNAME, SMTP_PASSWORD, SMTP_FROM, and ALERT_EMAIL as Actions secrets.');
+    await sendSmtpMail({ config: smtp, subject: `interp-bid: ${newLeadCount} new or updated interpreting lead${newLeadCount === 1 ? '' : 's'}${dryRun ? ' [DRY RUN]' : ''} — ${day(now)}`, text: `${dryRun ? 'THIS IS A DRY RUN. The lead registry was not updated, so these leads may repeat next run.\n\n' : ''}${reports.map((report) => report.content).join('\n\n' + '='.repeat(72) + '\n\n')}` });
+    emailSent = true;
+  }
+  if (dryRun) {
+    console.log(JSON.stringify({ dryRun: true, provider, emailSent, results: results.map((item) => ({ language: item.language, newLeads: item.delivered.length, suppressed: item.suppressed, diagnostics: item.diagnostics, deliveredLeads: item.delivered, manualVerification: item.digest.manualVerification, searchLog: item.digest.searchLog })) }, null, 2));
+    return;
+  }
+  const reportDir = path.join(root, 'reports', day(now));
+  await fs.mkdir(reportDir, { recursive: true });
+  for (const report of reports) await fs.writeFile(path.join(reportDir, `${report.language}-${clock(now)}.md`), report.content);
+  await fs.writeFile(path.join(root, 'state/lead-registry.json'), `${JSON.stringify(registry, null, 2)}\n`);
+  console.log(`Completed ${results.length} language runs with ${newLeadCount} new or updated leads.${emailSent ? ' Sent one consolidated email.' : ' No email sent.'}`);
+}
 main().catch((error) => { console.error(error.stack || error.message); process.exitCode = 1; });
