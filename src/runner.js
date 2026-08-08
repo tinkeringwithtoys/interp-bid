@@ -8,16 +8,29 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const readJson = async (relative) => JSON.parse(await fs.readFile(path.join(root, relative), 'utf8'));
 const day = (date) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Tunis' }).format(date);
 const clock = (date) => new Intl.DateTimeFormat('en-GB', { timeZone: 'Africa/Tunis', hour: '2-digit', minute: '2-digit', hour12: false }).format(date).replace(':', '');
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 function recentMemory(registry, now) { const cutoff = now.getTime() - 3 * 86400000; return registry.leads.filter((lead) => new Date(lead.firstSeen).getTime() >= cutoff).slice(-40).map((lead) => `- ${lead.title} | ${lead.buyer} | ${lead.canonicalUrl} | ${lead.status}`).join('\n') || '- None recorded.'; }
 function promptFor({ policy, language, queries, candidates, memory, provider }) { const candidateBlock = candidates.length ? candidates.map((item, index) => `SOURCE ${index + 1}\nURL: ${item.url}\nTITLE: ${item.title}\nPUBLISHED: ${item.publishedDate || 'unknown'}\nCONTENT:\n${item.text.slice(0, 12000)}\nHIGHLIGHTS:\n${item.highlights.join('\n')}`).join('\n\n---\n\n') : 'No pre-fetched candidates.'; return `${policy}\n\nRUN SETTINGS\n- Discovery language: ${language}.\n- Provider: ${provider}.\n- Today: ${day(new Date())}.\n- Query set: ${queries.join(' || ')}.\n- Previously reviewed in the last 3 days (do not repeat unless materially updated):\n${memory}\n\n${provider === 'openai-web' ? 'Search the live web now. Open direct notices and use their exact text.' : 'Use only the fetched direct-source evidence below. Do not create a lead from a snippet or a URL not shown.'}\n\nCANDIDATE EVIDENCE\n${candidateBlock}\n\nReturn required JSON only. Do not include an expired lead. Do not include a lead whose quoted requirements are absent from its direct notice.`; }
 function openAiUrlAllowed(lead, citedUrls) { try { return citedUrls.some((url) => canonicalUrl(url) === canonicalUrl(lead.sourceUrl)); } catch { return false; } }
 function validateDigest(digest) { if (!digest || !Array.isArray(digest.shortlist)) throw new Error('Model did not return the required shortlist array.'); digest.manualVerification ||= []; digest.searchLog ||= { queries: [], sourcesChecked: [], notes: '' }; return digest; }
+async function exaSearchWithRetry(query, apiKey, options, attempt = 1) {
+  try {
+    return await exaSearch(query, apiKey, options);
+  } catch (error) {
+    if (attempt < 4 && /\s429\b/.test(error.message || '')) { await sleep(500 * attempt); return exaSearchWithRetry(query, apiKey, options, attempt + 1); }
+    throw error;
+  }
+}
 async function runLanguage({ language, settings, policy, registry, now, provider }) {
   const queries = settings.queryTemplates[language], memory = recentMemory(registry, now); let candidates = [], response;
   if (provider === 'agnes-exa') {
     if (!process.env.EXA_API_KEY || !process.env.AGNES_API_KEY) throw new Error('AGNES_API_KEY and EXA_API_KEY are required for agnes-exa.');
     const startPublishedDate = new Date(now.getTime() - settings.resultLimits.recentPublishedDays * 86400000).toISOString();
-    const batches = await Promise.all(queries.map((query) => exaSearch(query, process.env.EXA_API_KEY, { startPublishedDate, excludeDomains: settings.excludedDomains })));
+    const batches = [];
+    for (const query of queries) {
+      batches.push(await exaSearchWithRetry(query, process.env.EXA_API_KEY, { startPublishedDate, excludeDomains: settings.excludedDomains }));
+      await sleep(200);
+    }
     const byUrl = new Map();
     for (const item of batches.flat()) try { if (!byUrl.has(canonicalUrl(item.url))) byUrl.set(canonicalUrl(item.url), item); } catch { /* discard invalid URL */ }
     candidates = [...byUrl.values()].slice(0, settings.resultLimits.maxCandidatesPerLanguage);
