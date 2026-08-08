@@ -15,7 +15,7 @@ export async function exaSearch(query, apiKey, { startPublishedDate, excludeDoma
     numResults: 8,
     ...(startPublishedDate ? { startPublishedDate } : {}),
     ...(excludeDomains.length ? { excludeDomains } : {}),
-    contents: { text: { maxCharacters: 6000 }, highlights: true }
+    contents: { text: { maxCharacters: 3500 }, highlights: true }
   }, fetchImpl);
   return (data.results || []).map((item) => ({
     url: item.url,
@@ -30,7 +30,8 @@ export async function agnesDigest({ model, apiKey, system, prompt, fetchImpl = f
   const data = await request('https://apihub.agnes-ai.com/v1/chat/completions', apiKey, {
     model,
     temperature: 0.1,
-    max_tokens: 32000,
+    max_tokens: 8000,
+    max_completion_tokens: 8000,
     reasoning_effort: 'low',
     messages: [{ role: 'system', content: system }, { role: 'user', content: prompt }]
   }, fetchImpl);
