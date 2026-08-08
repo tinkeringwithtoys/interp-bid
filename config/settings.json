@@ -11,14 +11,14 @@
   },
   "resultLimits": {
     "resultsPerQuery": 8,
-    "maxCandidatesPerLanguage": 24,
+    "maxCandidatesPerLanguage": 14,
     "monthlyRecurringSuppressDays": 30,
     "recentMemoryDays": 3,
     "recentPublishedDays": 7
   },
   "queryTemplates": {
     "en": [
-      "Arabic interpreter interpreting services (RFP OR tender OR solicitation OR roster OR panel OR vendor) -translation",
+      "Arabic interpreter interpreting services (RFP OR tender OR solicitation OR roster OR vendor) -translation",
       "Arabic (VRI OR OPI OR video remote interpreting OR telephone interpreting) (vendor OR RFP OR network OR panel)",
       "Arabic interpreter (court OR medical OR healthcare OR conference) (panel OR registry OR vendor OR subcontractor)",
       "(\"join our interpreter network\" OR \"become a vendor\" OR \"freelance interpreter\") Arabic (LSP OR agency)"
