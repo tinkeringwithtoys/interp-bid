@@ -11,7 +11,7 @@
   },
   "resultLimits": {
     "resultsPerQuery": 8,
-    "maxCandidatesPerLanguage": 18,
+    "maxCandidatesPerLanguage": 12,
     "monthlyRecurringSuppressDays": 30,
     "recentMemoryDays": 3,
     "recentPublishedDays": 7
