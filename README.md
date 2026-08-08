@@ -1,20 +1,12 @@
 # interp-bid
 
-A source-verified daily scout for **currently open live interpreting** opportunities. It never applies or bids. It discovers, verifies, deduplicates, and writes a short team digest.
+A source-verified daily scout for currently open live-interpreting opportunities. It discovers and verifies leads but never applies or bids.
 
-## Providers
+## Delivery
 
-- `agnes-exa` (default): Exa search/fetch plus Agnes reasoning and digest generation.
-- `openai-web`: OpenAI Responses API with hosted web search.
+A production run sends one consolidated email only when it finds new or materially updated verified leads. Duplicates, expired notices, and suppressed recurring rosters never trigger email.
 
-## Guarantees
-
-- A lead needs a direct notice URL, spoken-interpreting evidence, Arabic language-pair evidence, and an open deadline or verified recurring status.
-- Agnes+Exa quotes are checked against fetched page text.
-- Past deadlines are excluded before reports are written.
-- Normal leads are delivered once; material changes become updates; recurring rosters are suppressed for 30 days.
-
-## Required Actions secrets
+Required Actions secrets:
 
 ```text
 AGNES_API_KEY
@@ -25,20 +17,16 @@ SMTP_PORT
 SMTP_USERNAME
 SMTP_PASSWORD
 SMTP_FROM
-REPORT_RECIPIENTS
+ALERT_EMAIL
 ```
 
-For SMTP over port 465, also set `SMTP_SECURE=true`. Port 587 uses STARTTLS by default; set `SMTP_REQUIRE_TLS=false` only if you knowingly accept an unencrypted connection.
+`ALERT_EMAIL` may be a comma-separated recipient list. For port 465 set `SMTP_SECURE=true`; port 587 requires STARTTLS by default. Gmail requires an App Password, never a normal account password.
 
-`REPORT_RECIPIENTS` accepts a comma-separated recipient list. Gmail requires an **App Password**, not your normal Google password.
+## Safe validation
 
-## Email delivery
+Use `dry_run=true` first. It performs live provider calls but writes no reports, changes no registry, and sends no email. Dry-run logs include query, candidate, shortlist, manual-verification, and source counts for each language.
 
-When one scheduled batch finds new or materially updated verified leads, it sends **one consolidated email** with all three language reports. No email is sent when there are zero new leads; duplicates, expired notices, and suppressed recurring rosters never trigger mail.
-
-If new leads are found but SMTP configuration is missing or delivery fails, the workflow fails before committing the new registry. That prevents silent loss and allows the same new leads to be retried on the next run.
-
-## Validation
+## Local checks
 
 ```bash
 npm ci
@@ -47,5 +35,3 @@ npm test
 RESEARCH_PROVIDER=agnes-exa AGNES_API_KEY=... EXA_API_KEY=... npm run validate:live
 CONFIRM_SMTP_SMOKE_TEST=true npm run validate:smtp
 ```
-
-The final command intentionally sends one test email to `REPORT_RECIPIENTS`.
